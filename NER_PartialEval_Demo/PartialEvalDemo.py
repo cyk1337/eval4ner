@@ -36,7 +36,7 @@ def calc_partial_match_evaluation_per_line(prediction: list, goldenStandard: lis
     Calculate detailed partial evaluation metric. See Evaluation of the SemEval-2013 Task 9.1
     :param prediction (dict): k-> slot tags, value-> slot contents
     :param goldenStandard (dict): k-> slot tags, value-> slot contents
-    :return:
+    :return: eval_results (dict)
     """
     # if no label and no prediction, reguard as all correct!
     if len(prediction) == 0 and len(goldenStandard) == 0:
