@@ -15,23 +15,32 @@
 
 @contact: chaiyekun@gmail.com
 
-@file: PartialEvalDemo.py
+@file: UtilsTest.py
 
-@time: 22/11/2018 14:54 
+@time: 23/11/2018 17:48 
 
 @desc：       
                
 '''
 
-import requests, json, re
-import pandas as pd
 from copy import deepcopy
 
+eval_metics = {"precision": 0,
+               "recall": 0,
+               "f1_score": 0,
+               'count': 0
+               }
 
-# Reference:
-# https://www.cs.york.ac.uk/semeval-2013/task9/data/uploads/semeval_2013-task-9_1-evaluation-metrics.pdf
+EvalByType = {"strict": deepcopy(eval_metics),
+              "exact": deepcopy(eval_metics),
+              "partial": deepcopy(eval_metics),
+              "type": deepcopy(eval_metics), }
 
-def calc_partial_match_evaluation_per_line(prediction: list, goldenStandard: list, text: str):
+# evaluation metrics in total
+OverallEval = {}
+
+
+def calc_partial_match_evaluation_per_line(prediction: list, goldenStandard: list, text: str, domain_name: str):
     """
     Calculate detailed partial evaluation metric. See Evaluation of the SemEval-2013 Task 9.1
     :param prediction (list): (k, v) -> (slot tags, slot contents)
@@ -136,7 +145,15 @@ def calc_partial_match_evaluation_per_line(prediction: list, goldenStandard: lis
         eval_["recall"] = (COR + 0.5 * PAR) / POS if POS > 0 else 0
         eval_["f1_score"] = 2 * eval_["precision"] * eval_["recall"] / (eval_["precision"] + eval_["recall"]) \
             if eval_["precision"] + eval_["recall"] > 0 else 0
-    return eval_results
+
+    # update evaluation result
+    if domain_name not in OverallEval:
+        OverallEval.update({domain_name: EvalByType})
+
+    for mode in eval_results:
+        OverallEval[domain_name][mode]["precision"] += eval_results[mode]["precision"]
+        OverallEval[domain_name][mode]["recall"] += eval_results[mode]["recall"]
+        OverallEval[domain_name][mode]["f1_score"] += eval_results[mode]["f1_score"]
 
 
 def check_Scenario1(pred_tag: str, pred_val: str, goldenStandard: list):
@@ -215,98 +232,20 @@ def findBoundary(val, text):
     return res
 
 
-def preprocess_responseSlots(raw_slots: dict):
-    slots_ = []
-    for k, v in raw_slots.items():
-        if k in ["_index", "resource_score"] or k.islower() or k[-1].isdigit():
-            continue
-        else:
-            if ';' in v:
-                split_multiEntity = [(k, val) for val in v.split(";")]
-                slots_.extend(split_multiEntity)
-            elif '；' in v:
-                split_multiEntity = [(k, val) for val in v.split("；")]
-                slots_.extend(split_multiEntity)
-            else:
-                slots_.append((k, v))
-    return slots_
+def calc_overall_evaluation(count_by_type_dict: dict):
+    """
 
-
-def update_overall_result(OverallEval: dict, EvalRes_per_line: dict):
-    for mode in EvalRes_per_line:
-        OverallEval[mode]["precision"] += EvalRes_per_line[mode]["precision"]
-        OverallEval[mode]["recall"] += EvalRes_per_line[mode]["recall"]
-        OverallEval[mode]["f1_score"] += EvalRes_per_line[mode]["f1_score"]
-        OverallEval[mode]["count"] += 1
-
-
-def fetch_data_and_evaluation(test_api_template, test_file):
-    eval_metics = {"precision": 0,
-                   "recall": 0,
-                   "f1_score": 0,
-                   'count': 0
-                   }
-    # evaluation metrics in total
-    OverallEval = {"strict": deepcopy(eval_metics),
-                   "exact": deepcopy(eval_metics),
-                   "partial": deepcopy(eval_metics),
-                   "type": deepcopy(eval_metics), }
-
-    df = pd.read_csv(open(test_file, encoding='utf8'), sep='\t')
-    for index, row in df.iterrows():
-        try:
-            response = requests.get(test_api_template % (row["Domain"], row["话术"]))
-            if response.status_code == 200:
-                response_ = json.loads(response.text).get("skillInfoList", None)
-                if response_ or len(response_) > 0:
-                    response_dict = response_[0]
-                    slots_response = response_dict.get("matchedSlots", None)
-                    # filter out '_index' and 'resource_score' keys
-                    if slots_response:
-                        prediction_slots_tupleList = preprocess_responseSlots(slots_response)
-                        labeled_slots = row["Slot"]
-                        if str(labeled_slots) == 'nan':
-                            golden_slots_tupleList = []
-                        else:
-                            # extract slots dict from ground truth
-                            matchResult = re.findall("\<(.*?)\>(.*?)\<\/(.*?)\>", labeled_slots)
-                            if matchResult:
-                                golden_slots_tupleList = [(tag, value) for tag, value, _ in matchResult]
-                            else:
-                                golden_slots_tupleList = []
-                        result = calc_partial_match_evaluation_per_line(prediction_slots_tupleList,
-                                                                        golden_slots_tupleList, row["话术"])
-                        update_overall_result(OverallEval, result)
-
-                        for mode, res in result.items():
-                            print("text:{}, golden label:{}, predictee:{}, eval mode:{},  P:{:.3f}, R:{:.3f}, f1:{:.3f}"
-                                  .format(row["话术"], golden_slots_tupleList, prediction_slots_tupleList, mode,
-                                          res['precision'], res['recall'], res['f1_score']))
-
-                else:
-                    print("No valid response returned!")
-            # print(response)
-
-        except Exception as e:
-            print("Request error: {}".format(e))
-
-    print("=" * 100)
-    print("Overall result summary ...")
-    for mode, res in OverallEval.items():
-        print("Overall mode:{},  P:{:.3f}, R:{:.3f}, f1:{:.3f}"
-              .format(mode, res['precision'] / res['count'], res['recall'] / res['count'],
-                      res['f1_score'] / res['count']))
-
-
-def main():
-    # ====================
-    # define test data file
-    # ====================
-    test_file = "test.txt"
-
-    test_api_template = "http://jnlu-core-proxy.jd.com/alpha_skill/domainResult?sequenceId=233&env=yfb3&sessionId=124f345&deviceId=123&state=INIT_STATE&domain=%s&text=%s"
-    fetch_data_and_evaluation(test_api_template, test_file)
-
-
-if __name__ == '__main__':
-    main()
+    :param count_by_type_dict: {k:v}  key->domain_name, value-> count number by domain name
+    :return:
+    """
+    assert len(count_by_type_dict) > 0, "count by domain class should not be empty!"
+    for domain_name, domain_cnt in OverallEval.items():
+        for mode, res in OverallEval[domain_name].items():
+            OverallEval[domain_name][mode]['precision'] = res['precision'] / domain_cnt
+            OverallEval[domain_name][mode]['recall'] = res['recall'] / domain_cnt
+            OverallEval[domain_name][mode]['f1_score'] = res['f1_score'] / domain_cnt
+            print("Domain:{}, mode:{}, P:{:.3f}, R:{:.3f}, f1:{:.3f}".format(
+                domain_name, mode, OverallEval[domain_name][mode]['precision'],
+                OverallEval[domain_name][mode]['recall'],
+                OverallEval[domain_name][mode]['f1_score']))
+    return OverallEval
