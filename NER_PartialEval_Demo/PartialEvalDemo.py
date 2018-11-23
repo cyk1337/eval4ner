@@ -69,9 +69,6 @@ def calc_partial_match_evaluation4one_line(prediction: list, goldenStandard: lis
                     "type": deepcopy(eval_metics), }
 
     for pred_tag, pred_val in prediction:
-        # same_keys = [k for k, v in goldenStandard if v == pred_val]
-        # overlap_keys = [k for k, v in goldenStandard if checkIfOverlap(v, pred_val)]
-
         # exact match, i.e. both entity boundary and entity type match
         # scenario 1
         if check_Scenario1(pred_tag, pred_val, goldenStandard):
@@ -190,6 +187,7 @@ def check_Scenario6(pred_tag: str, pred_val: str, goldenStandard: list, text: st
 
 
 def checkIfOverlap(true_val, pred_val, text):
+    # method 1: check if index ranges have intersection (in index level)
     rang_a = findBoundary(true_val, text)
     rang_b = findBoundary(pred_val, text)
     if len(rang_a) == 0 or len(rang_b) == 0:
@@ -202,7 +200,7 @@ def checkIfOverlap(true_val, pred_val, text):
                     return True
                 else:
                     return False
-
+    # method 2: check if there are intersections (in surface string level)
     # return not set(true_val).isdisjoint(pred_val)
 
 
@@ -271,7 +269,7 @@ def fetch_data_and_evaluation(test_api_template, test_file):
 
 def main():
     # ====================
-    # define parameter
+    # define test data file
     # ====================
     test_file = "test.txt"
 
