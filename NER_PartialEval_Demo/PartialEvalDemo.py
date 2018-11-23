@@ -283,19 +283,19 @@ def fetch_data_and_evaluation(test_api_template, test_file):
                                   .format(row["话术"], golden_slots_tupleList, prediction_slots_tupleList, mode,
                                           res['precision'], res['recall'], res['f1_score']))
 
-                    print("=" * 100)
-                    print("Overall result ...")
-                    for mode, res in OverallEval.items():
-                        print("Overalleval mode:{},  P:{:.3f}, R:{:.3f}, f1:{:.3f}"
-                              .format(mode, res['precision'] / res['count'], res['recall'] / res['count'],
-                                      res['f1_score'] / res['count']))
-
                 else:
                     print("No valid response returned!")
             # print(response)
 
         except Exception as e:
             print("Request error: {}".format(e))
+
+    print("=" * 100)
+    print("Overall result summary ...")
+    for mode, res in OverallEval.items():
+        print("Overall mode:{},  P:{:.3f}, R:{:.3f}, f1:{:.3f}"
+              .format(mode, res['precision'] / res['count'], res['recall'] / res['count'],
+                      res['f1_score'] / res['count']))
 
 
 def main():
