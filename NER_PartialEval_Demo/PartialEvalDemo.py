@@ -28,7 +28,10 @@ import pandas as pd
 from copy import deepcopy
 
 
-def calc_partial_match_evaluation4one_line(prediction: list, goldenStandard: list, text: str):
+# Reference:
+# https://www.cs.york.ac.uk/semeval-2013/task9/data/uploads/semeval_2013-task-9_1-evaluation-metrics.pdf
+
+def calc_partial_match_evaluation_per_line(prediction: list, goldenStandard: list, text: str):
     """
     Calculate detailed partial evaluation metric. See Evaluation of the SemEval-2013 Task 9.1
     :param prediction (dict): k-> slot tags, value-> slot contents
@@ -62,7 +65,7 @@ def calc_partial_match_evaluation4one_line(prediction: list, goldenStandard: lis
                    "recall": 0,
                    "f1_score": 0,
                    }
-    # evaluation metrics in total
+    # evaluation metrics
     eval_results = {"strict": deepcopy(eval_metics),
                     "exact": deepcopy(eval_metics),
                     "partial": deepcopy(eval_metics),
@@ -229,7 +232,26 @@ def preprocess_responseSlots(raw_slots: dict):
     return slots_
 
 
+def update_overall_result(OverallEval: dict, EvalRes_per_line: dict):
+    for mode in EvalRes_per_line:
+        OverallEval[mode]["precision"] += EvalRes_per_line[mode]["precision"]
+        OverallEval[mode]["recall"] += EvalRes_per_line[mode]["recall"]
+        OverallEval[mode]["f1_score"] += EvalRes_per_line[mode]["f1_score"]
+        OverallEval[mode]["count"] += 1
+
+
 def fetch_data_and_evaluation(test_api_template, test_file):
+    eval_metics = {"precision": 0,
+                   "recall": 0,
+                   "f1_score": 0,
+                   'count': 0
+                   }
+    # evaluation metrics in total
+    OverallEval = {"strict": deepcopy(eval_metics),
+                   "exact": deepcopy(eval_metics),
+                   "partial": deepcopy(eval_metics),
+                   "type": deepcopy(eval_metics), }
+
     df = pd.read_csv(open(test_file, encoding='utf8'), sep='\t')
     for index, row in df.iterrows():
         try:
@@ -252,12 +274,21 @@ def fetch_data_and_evaluation(test_api_template, test_file):
                                 golden_slots_tupleList = [(tag, value) for tag, value, _ in matchResult]
                             else:
                                 golden_slots_tupleList = []
-                        result = calc_partial_match_evaluation4one_line(prediction_slots_tupleList,
+                        result = calc_partial_match_evaluation_per_line(prediction_slots_tupleList,
                                                                         golden_slots_tupleList, row["话术"])
+                        update_overall_result(OverallEval, result)
+
                         for mode, res in result.items():
                             print("text:{}, golden label:{}, predictee:{}, eval mode:{},  P:{:.3f}, R:{:.3f}, f1:{:.3f}"
                                   .format(row["话术"], golden_slots_tupleList, prediction_slots_tupleList, mode,
                                           res['precision'], res['recall'], res['f1_score']))
+
+                    print("=" * 100)
+                    print("Overall result ...")
+                    for mode, res in OverallEval.items():
+                        print("Overalleval mode:{},  P:{:.3f}, R:{:.3f}, f1:{:.3f}"
+                              .format(mode, res['precision'] / res['count'], res['recall'] / res['count'],
+                                      res['f1_score'] / res['count']))
 
                 else:
                     print("No valid response returned!")
