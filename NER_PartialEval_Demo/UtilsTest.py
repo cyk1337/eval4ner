@@ -234,7 +234,7 @@ def findBoundary(val, text):
 
 def calc_overall_evaluation(count_by_type_dict: dict):
     """
-
+    Evaluation summary by domain type
     :param count_by_type_dict: {k:v}  key->domain_name, value-> count number by domain name
     :return:
     """
