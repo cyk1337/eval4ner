@@ -63,88 +63,87 @@ def calc_partial_match_evaluation_per_line(prediction: list, goldenStandard: lis
                         "exact": deepcopy(eval_metics),
                         "partial": deepcopy(eval_metics),
                         "type": deepcopy(eval_metics), }
-        return eval_results
+    else:
+        eval_metics = {"correct": 0,
+                       "incorrect": 0,
+                       "partial": 0,
+                       "missed": 0,
+                       "spurius": 0,
+                       "precision": 0,
+                       "recall": 0,
+                       "f1_score": 0,
+                       }
+        # evaluation metrics
+        eval_results = {"strict": deepcopy(eval_metics),
+                        "exact": deepcopy(eval_metics),
+                        "partial": deepcopy(eval_metics),
+                        "type": deepcopy(eval_metics), }
 
-    eval_metics = {"correct": 0,
-                   "incorrect": 0,
-                   "partial": 0,
-                   "missed": 0,
-                   "spurius": 0,
-                   "precision": 0,
-                   "recall": 0,
-                   "f1_score": 0,
-                   }
-    # evaluation metrics
-    eval_results = {"strict": deepcopy(eval_metics),
-                    "exact": deepcopy(eval_metics),
-                    "partial": deepcopy(eval_metics),
-                    "type": deepcopy(eval_metics), }
+        for pred_tag, pred_val in prediction:
+            # exact match, i.e. both entity boundary and entity type match
+            # scenario 1
+            if check_Scenario1(pred_tag, pred_val, goldenStandard):
+                # 'strict' matching
+                eval_results['strict']['correct'] += 1
+                eval_results['type']['correct'] += 1
+                eval_results['exact']['correct'] += 1
+                eval_results['partial']['correct'] += 1
 
-    for pred_tag, pred_val in prediction:
-        # exact match, i.e. both entity boundary and entity type match
-        # scenario 1
-        if check_Scenario1(pred_tag, pred_val, goldenStandard):
-            # 'strict' matching
-            eval_results['strict']['correct'] += 1
-            eval_results['type']['correct'] += 1
-            eval_results['exact']['correct'] += 1
-            eval_results['partial']['correct'] += 1
+            # partial match
+            # scenario 5
+            elif check_Scenario5(pred_tag, pred_val, goldenStandard, text):
+                # exact boundary matching
+                eval_results['strict']['incorrect'] += 1
+                eval_results['exact']['incorrect'] += 1
+                eval_results['partial']['partial'] += 1
+                eval_results['type']['correct'] += 1
 
-        # partial match
-        # scenario 5
-        elif check_Scenario5(pred_tag, pred_val, goldenStandard, text):
-            # exact boundary matching
-            eval_results['strict']['incorrect'] += 1
-            eval_results['exact']['incorrect'] += 1
-            eval_results['partial']['partial'] += 1
-            eval_results['type']['correct'] += 1
+            # scenario 4: same pred value，entity type disagree
+            elif check_Scenario4(pred_tag, pred_val, goldenStandard):
+                eval_results['strict']['incorrect'] += 1
+                eval_results['exact']['correct'] += 1
+                eval_results['partial']['correct'] += 1
+                eval_results['type']['incorrect'] += 1
 
-        # scenario 4: same pred value，entity type disagree
-        elif check_Scenario4(pred_tag, pred_val, goldenStandard):
-            eval_results['strict']['incorrect'] += 1
-            eval_results['exact']['correct'] += 1
-            eval_results['partial']['correct'] += 1
-            eval_results['type']['incorrect'] += 1
+            # scenario 6 : overlap exists, but tags disagree
+            elif check_Scenario6(pred_tag, pred_val, goldenStandard, text):
+                eval_results['strict']['incorrect'] += 1
+                eval_results['exact']['correct'] += 1
+                eval_results['partial']['correct'] += 1
+                eval_results['type']['incorrect'] += 1
 
-        # scenario 6 : overlap exists, but tags disagree
-        elif check_Scenario6(pred_tag, pred_val, goldenStandard, text):
-            eval_results['strict']['incorrect'] += 1
-            eval_results['exact']['correct'] += 1
-            eval_results['partial']['correct'] += 1
-            eval_results['type']['incorrect'] += 1
+            # predictee not exists in golden standard
+            # scenario 2: SPU, predicted entity not exists in golden, and no overlap on entity boundary
+            elif check_Scenario2(pred_tag, pred_val, goldenStandard, text):
+                eval_results['strict']['spurius'] += 1
+                eval_results['exact']['spurius'] += 1
+                eval_results['partial']['spurius'] += 1
+                eval_results['type']['spurius'] += 1
 
-        # predictee not exists in golden standard
-        # scenario 2: SPU, predicted entity not exists in golden, and no overlap on entity boundary
-        elif check_Scenario2(pred_tag, pred_val, goldenStandard, text):
-            eval_results['strict']['spurius'] += 1
-            eval_results['exact']['spurius'] += 1
-            eval_results['partial']['spurius'] += 1
-            eval_results['type']['spurius'] += 1
+        for true_tag, true_val in goldenStandard:
+            if check_Scenario3(true_tag, true_val, prediction, text):
+                # count missing
+                eval_results['strict']['missed'] += 1
+                eval_results['exact']['missed'] += 1
+                eval_results['partial']['missed'] += 1
+                eval_results['type']['missed'] += 1
 
-    for true_tag, true_val in goldenStandard:
-        if check_Scenario3(true_tag, true_val, prediction, text):
-            # count missing
-            eval_results['strict']['missed'] += 1
-            eval_results['exact']['missed'] += 1
-            eval_results['partial']['missed'] += 1
-            eval_results['type']['missed'] += 1
+        # calculate P, R, F1
+        # POS = len(goldenStandard)
+        # ACT = len(prediction)
 
-    # calculate P, R, F1
-    # POS = len(goldenStandard)
-    # ACT = len(prediction)
-
-    for k, eval_ in eval_results.items():
-        COR = eval_["correct"]
-        INC = eval_["incorrect"]
-        PAR = eval_["partial"]
-        MIS = eval_["missed"]
-        SPU = eval_['spurius']
-        eval_['possible'] = POS = COR + INC + PAR + MIS
-        eval_['actual'] = ACT = COR + INC + PAR + SPU
-        eval_["precision"] = (COR + 0.5 * PAR) / ACT if ACT > 0 else 0
-        eval_["recall"] = (COR + 0.5 * PAR) / POS if POS > 0 else 0
-        eval_["f1_score"] = 2 * eval_["precision"] * eval_["recall"] / (eval_["precision"] + eval_["recall"]) \
-            if eval_["precision"] + eval_["recall"] > 0 else 0
+        for k, eval_ in eval_results.items():
+            COR = eval_["correct"]
+            INC = eval_["incorrect"]
+            PAR = eval_["partial"]
+            MIS = eval_["missed"]
+            SPU = eval_['spurius']
+            eval_['possible'] = POS = COR + INC + PAR + MIS
+            eval_['actual'] = ACT = COR + INC + PAR + SPU
+            eval_["precision"] = (COR + 0.5 * PAR) / ACT if ACT > 0 else 0
+            eval_["recall"] = (COR + 0.5 * PAR) / POS if POS > 0 else 0
+            eval_["f1_score"] = 2 * eval_["precision"] * eval_["recall"] / (eval_["precision"] + eval_["recall"]) \
+                if eval_["precision"] + eval_["recall"] > 0 else 0
 
     # update evaluation result
     if domain_name not in OverallEval:
