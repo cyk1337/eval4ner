@@ -239,7 +239,7 @@ def calc_overall_evaluation(count_by_type_dict: dict):
     :return:
     """
     assert len(count_by_type_dict) > 0, "count by domain class should not be empty!"
-    for domain_name, domain_cnt in OverallEval.items():
+    for domain_name, domain_cnt in count_by_type_dict.items():
         for mode, res in OverallEval[domain_name].items():
             OverallEval[domain_name][mode]['precision'] = res['precision'] / domain_cnt
             OverallEval[domain_name][mode]['recall'] = res['recall'] / domain_cnt
