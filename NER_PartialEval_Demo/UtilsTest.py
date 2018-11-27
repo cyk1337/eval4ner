@@ -108,8 +108,8 @@ def calc_partial_match_evaluation_per_line(prediction: list, goldenStandard: lis
             # scenario 6 : overlap exists, but tags disagree
             elif check_Scenario6(pred_tag, pred_val, goldenStandard, text):
                 eval_results['strict']['incorrect'] += 1
-                eval_results['exact']['correct'] += 1
-                eval_results['partial']['correct'] += 1
+                eval_results['exact']['incorrect'] += 1
+                eval_results['partial']['partial'] += 1
                 eval_results['type']['incorrect'] += 1
 
             # predictee not exists in golden standard
@@ -147,7 +147,7 @@ def calc_partial_match_evaluation_per_line(prediction: list, goldenStandard: lis
 
     # update evaluation result
     if domain_name not in OverallEval:
-        OverallEval.update({domain_name: EvalByType})
+        OverallEval.update({domain_name: deepcopy(EvalByType)})
 
     for mode in eval_results:
         OverallEval[domain_name][mode]["precision"] += eval_results[mode]["precision"]
