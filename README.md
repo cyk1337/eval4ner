@@ -1,5 +1,5 @@
 # NER-evaluation
-NER MUC evaluation
+NER MUC evaluation (Python implementation)
 
 Blog: [Evaluation metrics of Name Entity Recognition systems](https://ychai.uk/notes/2018/11/21/NLP/NER/Evaluation-metrics-of-Name-Entity-Recognition-systems/#SemEval%E2%80%9813)
 
