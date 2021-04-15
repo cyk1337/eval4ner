@@ -1,5 +1,0 @@
-话术	Domain	Intent	Slot
-我想听歌	music	MUSIC_GENERAL_PLAY	
-我想听周杰伦	music	MUSIC_GENERAL_PLAY	我想听<SINGER>周杰伦</SINGER>
-我想听周杰伦的青花瓷	music	MUSIC_GENERAL_PLAY	我想听<SINGER>周杰伦</SINGER>的<MUSIC_NAME>青花瓷</MUSIC_NAME>
-我想听周杰伦和蔡依林的青花瓷	music	MUSIC_GENERAL_PLAY	我想听<SINGER>周杰伦</SINGER>和<SINGER>蔡依林</SINGER>的<MUSIC_NAME>青花瓷</MUSIC_NAME>

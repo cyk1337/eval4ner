@@ -3,43 +3,41 @@
 # -*- encoding: utf-8
 
 '''
-                      ______   ___  __
-                     / ___\ \ / / |/ /
-                    | |    \ V /| ' / 
-                    | |___  | | | . \ 
-                     \____| |_| |_|\_\
- ==========================================================================
+_____.___._______________  __.____ __________    _________   ___ ___    _____  .___ 
+\__  |   |\_   _____/    |/ _|    |   \      \   \_   ___ \ /   |   \  /  _  \ |   |
+ /   |   | |    __)_|      < |    |   /   |   \  /    \  \//    ~    \/  /_\  \|   |
+ \____   | |        \    |  \|    |  /    |    \ \     \___\    Y    /    |    \   |
+ / ______|/_______  /____|__ \______/\____|__  /  \______  /\___|_  /\____|__  /___|
+ \/               \/        \/               \/          \/       \/         \/     
+ 
+
 @author: Yekun Chai
-
-@license: School of Informatics, Edinburgh
-
-@contact: chaiyekun@gmail.com
-
-@file: PartialEvalDemo.py
-
-@time: 22/11/2018 14:54 
-
-@desc：       
+@license: CYK
+@email: chaiyekun@gmail.com
+@file: test.py
+@time: @Time : 4/15/21 3:22 PM 
+@desc： 
                
 '''
 
-import requests, json, re
-import pandas as pd
+# !/usr/bin/env python
+
+# -*- encoding: utf-8
+
+
 from copy import deepcopy
+import pprint
 
-
-# Reference:
-# https://www.cs.york.ac.uk/semeval-2013/task9/data/uploads/semeval_2013-task-9_1-evaluation-metrics.pdf
-
-def calc_partial_match_evaluation_per_line(prediction: list, goldenStandard: list, text: str):
+def evaluate_one(prediction: list, grount_truth: list, text: str):
     """
+    Evaluate single case
     Calculate detailed partial evaluation metric. See Evaluation of the SemEval-2013 Task 9.1
-    :param prediction (list): (k, v) -> (slot tags, slot contents)
-    :param goldenStandard (dict): (k, v) -> (slot tags, slot contents)
+    :param prediction (list): [(slot tag, slot content), (slot tag, slot content), (slot tag, slot content), ...]
+    :param grount_true (list): [(slot tag, slot content), (slot tag, slot content), (slot tag, slot content), ...]
     :return: eval_results (dict)
     """
     # if no label and no prediction, reguard as all correct!
-    if len(prediction) == 0 and len(goldenStandard) == 0:
+    if len(prediction) == 0 and len(grount_truth) == 0:
         eval_metics = {"correct": 1,
                        "incorrect": 1,
                        "partial": 1,
@@ -74,7 +72,7 @@ def calc_partial_match_evaluation_per_line(prediction: list, goldenStandard: lis
     for pred_tag, pred_val in prediction:
         # exact match, i.e. both entity boundary and entity type match
         # scenario 1
-        if check_Scenario1(pred_tag, pred_val, goldenStandard):
+        if check_Scenario1(pred_tag, pred_val, grount_truth):
             # 'strict' matching
             eval_results['strict']['correct'] += 1
             eval_results['type']['correct'] += 1
@@ -83,7 +81,7 @@ def calc_partial_match_evaluation_per_line(prediction: list, goldenStandard: lis
 
         # partial match
         # scenario 5
-        elif check_Scenario5(pred_tag, pred_val, goldenStandard, text):
+        elif check_Scenario5(pred_tag, pred_val, grount_truth, text):
             # exact boundary matching
             eval_results['strict']['incorrect'] += 1
             eval_results['exact']['incorrect'] += 1
@@ -91,14 +89,14 @@ def calc_partial_match_evaluation_per_line(prediction: list, goldenStandard: lis
             eval_results['type']['correct'] += 1
 
         # scenario 4: same pred value，entity type disagree
-        elif check_Scenario4(pred_tag, pred_val, goldenStandard):
+        elif check_Scenario4(pred_tag, pred_val, grount_truth):
             eval_results['strict']['incorrect'] += 1
             eval_results['exact']['correct'] += 1
             eval_results['partial']['correct'] += 1
             eval_results['type']['incorrect'] += 1
 
         # scenario 6 : overlap exists, but tags disagree
-        elif check_Scenario6(pred_tag, pred_val, goldenStandard, text):
+        elif check_Scenario6(pred_tag, pred_val, grount_truth, text):
             eval_results['strict']['incorrect'] += 1
             eval_results['exact']['incorrect'] += 1
             eval_results['partial']['partial'] += 1
@@ -106,14 +104,15 @@ def calc_partial_match_evaluation_per_line(prediction: list, goldenStandard: lis
 
         # predictee not exists in golden standard
         # scenario 2: SPU, predicted entity not exists in golden, and no overlap on entity boundary
-        elif check_Scenario2(pred_tag, pred_val, goldenStandard, text):
+        elif check_Scenario2(pred_tag, pred_val, grount_truth, text):
             eval_results['strict']['spurius'] += 1
             eval_results['exact']['spurius'] += 1
             eval_results['partial']['spurius'] += 1
             eval_results['type']['spurius'] += 1
 
-    for true_tag, true_val in goldenStandard:
-        if check_Scenario3(true_tag, true_val, prediction, text):
+    for true_tag, true_val in grount_truth:
+        flag, prediction = check_Scenario3(true_tag, true_val, prediction, text)
+        if flag:
             # count missing
             eval_results['strict']['missed'] += 1
             eval_results['exact']['missed'] += 1
@@ -121,7 +120,7 @@ def calc_partial_match_evaluation_per_line(prediction: list, goldenStandard: lis
             eval_results['type']['missed'] += 1
 
     # calculate P, R, F1
-    # POS = len(goldenStandard)
+    # POS = len(grount_truth)
     # ACT = len(prediction)
 
     for k, eval_ in eval_results.items():
@@ -139,26 +138,26 @@ def calc_partial_match_evaluation_per_line(prediction: list, goldenStandard: lis
     return eval_results
 
 
-def check_Scenario1(pred_tag: str, pred_val: str, goldenStandard: list):
+def check_Scenario1(pred_tag: str, pred_val: str, grount_truth: list):
     # scenario 1: both entity type and entity boundary strictly match
-    COR_list = [1 for true_tag, true_val in goldenStandard if true_tag == pred_tag and true_val == pred_val]
+    COR_list = [1 for true_tag, true_val in grount_truth if true_tag == pred_tag and true_val == pred_val]
     if len(COR_list) > 0:
         return True
     else:
         return False
 
 
-def check_Scenario5(pred_tag: str, pred_val: str, goldenStandard: list, text: str):
+def check_Scenario5(pred_tag: str, pred_val: str, grount_truth: list, text: str):
     # scenario 5: same entity type and entity boundary overlap
-    for true_tag, true_val in goldenStandard:
+    for true_tag, true_val in grount_truth:
         if pred_tag == true_tag and checkIfOverlap(true_val, pred_val, text):
             return True
     return False
 
 
-def check_Scenario2(pred_tag: str, pred_val: str, goldenStandard: list, text: str):
+def check_Scenario2(pred_tag: str, pred_val: str, grount_truth: list, text: str):
     # scenario 2: SPU, predicted entity type not exists in golden, and no overlap on entity boundary
-    for true_tag, true_val in goldenStandard:
+    for true_tag, true_val in grount_truth:
         if checkIfOverlap(true_val, pred_val, text):
             return False
     return True
@@ -169,21 +168,22 @@ def check_Scenario3(true_tag: str, true_val: str, prediction: list, text: str):
     # scenario 3:entity boundary not overlap,  golden standard not exists in prediction
     for pred_tag, pred_val in prediction:
         if checkIfOverlap(true_val, pred_val, text):
-            return False
-    return True
+            prediction.remove((pred_tag, pred_val))
+            return False, prediction
+    return True, prediction
 
 
-def check_Scenario4(pred_tag: str, pred_val: str, goldenStandard: list):
+def check_Scenario4(pred_tag: str, pred_val: str, grount_truth: list):
     # scenario 4: same pred value，entity type disagree
-    for true_tag, true_val in goldenStandard:
+    for true_tag, true_val in grount_truth:
         if true_val == pred_val and true_tag != pred_tag:
             return True
     return False
 
 
-def check_Scenario6(pred_tag: str, pred_val: str, goldenStandard: list, text: str):
+def check_Scenario6(pred_tag: str, pred_val: str, grount_truth: list, text: str):
     # scenario 6: entity boundary overlap, entity type disagree
-    for true_tag, true_val in goldenStandard:
+    for true_tag, true_val in grount_truth:
         if checkIfOverlap(true_val, pred_val, text) and true_tag != pred_tag:
             return True
     return False
@@ -215,98 +215,63 @@ def findBoundary(val, text):
     return res
 
 
-def preprocess_responseSlots(raw_slots: dict):
-    slots_ = []
-    for k, v in raw_slots.items():
-        if k in ["_index", "resource_score"] or k.islower() or k[-1].isdigit():
-            continue
-        else:
-            if ';' in v:
-                split_multiEntity = [(k, val) for val in v.split(";")]
-                slots_.extend(split_multiEntity)
-            elif '；' in v:
-                split_multiEntity = [(k, val) for val in v.split("；")]
-                slots_.extend(split_multiEntity)
-            else:
-                slots_.append((k, v))
-    return slots_
+def update_overall_result(total_res: dict, res_single: dict):
+    for mode in res_single:
+        total_res[mode]["precision"] += res_single[mode]["precision"]
+        total_res[mode]["recall"] += res_single[mode]["recall"]
+        total_res[mode]["f1_score"] += res_single[mode]["f1_score"]
+        total_res[mode]["count"] += 1
+    return total_res
 
 
-def update_overall_result(OverallEval: dict, EvalRes_per_line: dict):
-    for mode in EvalRes_per_line:
-        OverallEval[mode]["precision"] += EvalRes_per_line[mode]["precision"]
-        OverallEval[mode]["recall"] += EvalRes_per_line[mode]["recall"]
-        OverallEval[mode]["f1_score"] += EvalRes_per_line[mode]["f1_score"]
-        OverallEval[mode]["count"] += 1
-
-
-def fetch_data_and_evaluation(test_api_template, test_file):
+def evaluate_all(predictions: list, golden_labels: list, texts: list, verbose=False):
+    """
+    evaluate all cases
+    :param predictions: list(list) [
+                                [(slot tag, slot content), (slot tag, slot content), (slot tag, slot content), ...],
+                                [(slot tag, slot content), (slot tag, slot content), (slot tag, slot content), ...],
+                                [(slot tag, slot content), (slot tag, slot content), (slot tag, slot content), ...]
+                            ]
+    :param golden_labels: list(list)  [
+                                [(slot tag, slot content), (slot tag, slot content), (slot tag, slot content), ...],
+                                [(slot tag, slot content), (slot tag, slot content), (slot tag, slot content), ...],
+                                [(slot tag, slot content), (slot tag, slot content), (slot tag, slot content), ...]
+                            ]
+    :param texts: list(str) [ text1, test2, text3, ...]
+    :return: dict of results
+    """
+    assert len(predictions) == len(golden_labels) == len(
+        texts), 'the counts of predictions/golden_labels/texts are not equal!'
     eval_metics = {"precision": 0,
                    "recall": 0,
                    "f1_score": 0,
                    'count': 0
                    }
     # evaluation metrics in total
-    OverallEval = {"strict": deepcopy(eval_metics),
-                   "exact": deepcopy(eval_metics),
-                   "partial": deepcopy(eval_metics),
-                   "type": deepcopy(eval_metics), }
+    total_results = {"strict": deepcopy(eval_metics),
+                     "exact": deepcopy(eval_metics),
+                     "partial": deepcopy(eval_metics),
+                     "type": deepcopy(eval_metics), }
+    for i, (pred, gt, text) in enumerate(zip(predictions, golden_labels, texts)):
+        one_result = evaluate_one(pred, gt, text)
+        if verbose:
+            print('--'*6, 'sample_{:0>6}:'.format(i + 1))
+            pprint.pprint(one_result)
+        total_results = update_overall_result(total_results, one_result)
 
-    df = pd.read_csv(open(test_file, encoding='utf8'), sep='\t')
-    for index, row in df.iterrows():
-        try:
-            response = requests.get(test_api_template % (row["Domain"], row["话术"]))
-            if response.status_code == 200:
-                response_ = json.loads(response.text).get("skillInfoList", None)
-                if response_ or len(response_) > 0:
-                    response_dict = response_[0]
-                    slots_response = response_dict.get("matchedSlots", None)
-                    # filter out '_index' and 'resource_score' keys
-                    if slots_response:
-                        prediction_slots_tupleList = preprocess_responseSlots(slots_response)
-                        labeled_slots = row["Slot"]
-                        if str(labeled_slots) == 'nan':
-                            golden_slots_tupleList = []
-                        else:
-                            # extract slots dict from ground truth
-                            matchResult = re.findall("\<(.*?)\>(.*?)\<\/(.*?)\>", labeled_slots)
-                            if matchResult:
-                                golden_slots_tupleList = [(tag, value) for tag, value, _ in matchResult]
-                            else:
-                                golden_slots_tupleList = []
-                        result = calc_partial_match_evaluation_per_line(prediction_slots_tupleList,
-                                                                        golden_slots_tupleList, row["话术"])
-                        update_overall_result(OverallEval, result)
-
-                        for mode, res in result.items():
-                            print("text:{}, golden label:{}, predictee:{}, eval mode:{},  P:{:.3f}, R:{:.3f}, f1:{:.3f}"
-                                  .format(row["话术"], golden_slots_tupleList, prediction_slots_tupleList, mode,
-                                          res['precision'], res['recall'], res['f1_score']))
-
-                else:
-                    print("No valid response returned!")
-            # print(response)
-
-        except Exception as e:
-            print("Request error: {}".format(e))
-
-    print("=" * 100)
-    print("Overall result summary ...")
-    for mode, res in OverallEval.items():
-        print("Overall mode:{},  P:{:.3f}, R:{:.3f}, f1:{:.3f}"
+    print('\n', 'NER evaluation scores:')
+    for mode, res in total_results.items():
+        print("{:>8s} mode, Precision={:<6.4f}, Recall={:<6.4f}, F1:{:<6.4f}"
               .format(mode, res['precision'] / res['count'], res['recall'] / res['count'],
                       res['f1_score'] / res['count']))
-
-
-def main():
-    # ====================
-    # define test data file
-    # ====================
-    test_file = "test.txt"
-
-    test_api_template = "http://jnlu-core-proxy.jd.com/alpha_skill/domainResult?sequenceId=233&env=yfb3&sessionId=124f345&deviceId=123&state=INIT_STATE&domain=%s&text=%s"
-    fetch_data_and_evaluation(test_api_template, test_file)
+    return total_results
 
 
 if __name__ == '__main__':
-    main()
+    grount_truth = [('PER', 'John Jones'), ('PER', 'Peter Peters'), ('LOC', 'York')]
+    prediction = [('PER', 'John Jones and Peter Peters came to York')]
+    text = 'John Jones and Peter Peters came to York'
+    # one_result = evaluate_one(prediction, grount_truth, text)
+    # print(one_result)
+
+    evaluate_all([prediction] * 1, [grount_truth] * 1, [text] * 1, verbose=True)

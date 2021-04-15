@@ -1,0 +1,10 @@
+LICENCE
+README.md
+pyproject.toml
+setup.py
+eval4ner/__init__.py
+eval4ner/muc.py
+eval4ner.egg-info/PKG-INFO
+eval4ner.egg-info/SOURCES.txt
+eval4ner.egg-info/dependency_links.txt
+eval4ner.egg-info/top_level.txt
