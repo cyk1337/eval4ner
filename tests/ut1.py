@@ -20,19 +20,27 @@ _____.___._______________  __.____ __________    _________   ___ ___    _____  .
                
 '''
 
-if __name__ == '__main__':
-    import eval4ner.muc as muc
-    import pprint
 
-    """
-        test single
-    """
+def single_ut1():
     grount_truth = [('PER', 'John Jones'), ('PER', 'Peter Peters'), ('LOC', 'York')]
     prediction = [('PER', 'John Jones and Peter Peters came to York')]
     text = 'John Jones and Peter Peters came to York'
     one_result = muc.evaluate_one(prediction, grount_truth, text)
     pprint.pprint(one_result)
 
+
+def single_ut2():
+    """
+        test single
+    """
+    grount_truth = [("PER", "John Jones")]
+    prediction = [("PER", "John"), ("PER", "Jones")]
+    text = 'John Jones and Peter Peters came to York'
+    one_result = muc.evaluate_one(prediction, grount_truth, text)
+    pprint.pprint(one_result)
+
+
+def all_ut1():
     """
         test all
     """
@@ -52,3 +60,11 @@ if __name__ == '__main__':
         'John Jones and Peter Peters came to York'
     ]
     muc.evaluate_all(predictions, grount_truths * 1, texts, verbose=True)
+
+
+if __name__ == '__main__':
+    import eval4ner.muc as muc
+    import pprint
+
+
+    single_ut2()

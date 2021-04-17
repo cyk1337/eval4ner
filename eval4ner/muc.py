@@ -72,43 +72,52 @@ def evaluate_one(prediction: list, grount_truth: list, text: str):
     for pred_tag, pred_val in prediction:
         # exact match, i.e. both entity boundary and entity type match
         # scenario 1
-        if check_Scenario1(pred_tag, pred_val, grount_truth):
+        flag1, grount_truth = check_Scenario1(pred_tag, pred_val, grount_truth)
+        if flag1:
             # 'strict' matching
             eval_results['strict']['correct'] += 1
             eval_results['type']['correct'] += 1
             eval_results['exact']['correct'] += 1
             eval_results['partial']['correct'] += 1
-
+            continue
         # partial match
         # scenario 5
-        elif check_Scenario5(pred_tag, pred_val, grount_truth, text):
+        flag5, grount_truth = check_Scenario5(pred_tag, pred_val, grount_truth, text)
+        if flag5:
             # exact boundary matching
             eval_results['strict']['incorrect'] += 1
             eval_results['exact']['incorrect'] += 1
             eval_results['partial']['partial'] += 1
             eval_results['type']['correct'] += 1
+            continue
 
         # scenario 4: same pred value，entity type disagree
-        elif check_Scenario4(pred_tag, pred_val, grount_truth):
+        flag4, grount_truth = check_Scenario4(pred_tag, pred_val, grount_truth)
+        if flag4:
             eval_results['strict']['incorrect'] += 1
             eval_results['exact']['correct'] += 1
             eval_results['partial']['correct'] += 1
             eval_results['type']['incorrect'] += 1
+            continue
 
         # scenario 6 : overlap exists, but tags disagree
-        elif check_Scenario6(pred_tag, pred_val, grount_truth, text):
+        flag6, grount_truth = check_Scenario6(pred_tag, pred_val, grount_truth, text)
+        if flag6:
             eval_results['strict']['incorrect'] += 1
             eval_results['exact']['incorrect'] += 1
             eval_results['partial']['partial'] += 1
             eval_results['type']['incorrect'] += 1
+            continue
 
         # predictee not exists in golden standard
         # scenario 2: SPU, predicted entity not exists in golden, and no overlap on entity boundary
-        elif check_Scenario2(pred_tag, pred_val, grount_truth, text):
+        flag2, grount_truth = check_Scenario2(pred_tag, pred_val, grount_truth, text)
+        if flag2:
             eval_results['strict']['spurius'] += 1
             eval_results['exact']['spurius'] += 1
             eval_results['partial']['spurius'] += 1
             eval_results['type']['spurius'] += 1
+            continue
 
     for true_tag, true_val in grount_truth:
         flag, prediction = check_Scenario3(true_tag, true_val, prediction, text)
@@ -142,25 +151,27 @@ def check_Scenario1(pred_tag: str, pred_val: str, grount_truth: list):
     # scenario 1: both entity type and entity boundary strictly match
     COR_list = [1 for true_tag, true_val in grount_truth if true_tag == pred_tag and true_val == pred_val]
     if len(COR_list) > 0:
-        return True
+        grount_truth.remove((pred_tag, pred_val))
+        return True, grount_truth
     else:
-        return False
+        return False, grount_truth
 
 
 def check_Scenario5(pred_tag: str, pred_val: str, grount_truth: list, text: str):
     # scenario 5: same entity type and entity boundary overlap
     for true_tag, true_val in grount_truth:
         if pred_tag == true_tag and checkIfOverlap(true_val, pred_val, text):
-            return True
-    return False
+            grount_truth.remove((true_tag, true_val))
+            return True, grount_truth
+    return False, grount_truth
 
 
 def check_Scenario2(pred_tag: str, pred_val: str, grount_truth: list, text: str):
     # scenario 2: SPU, predicted entity type not exists in golden, and no overlap on entity boundary
     for true_tag, true_val in grount_truth:
         if checkIfOverlap(true_val, pred_val, text):
-            return False
-    return True
+            return False, grount_truth
+    return True, grount_truth
 
 
 def check_Scenario3(true_tag: str, true_val: str, prediction: list, text: str):
@@ -177,16 +188,18 @@ def check_Scenario4(pred_tag: str, pred_val: str, grount_truth: list):
     # scenario 4: same pred value，entity type disagree
     for true_tag, true_val in grount_truth:
         if true_val == pred_val and true_tag != pred_tag:
-            return True
-    return False
+            grount_truth.remove((true_tag, true_val))
+            return True, grount_truth
+    return False, grount_truth
 
 
 def check_Scenario6(pred_tag: str, pred_val: str, grount_truth: list, text: str):
     # scenario 6: entity boundary overlap, entity type disagree
     for true_tag, true_val in grount_truth:
         if checkIfOverlap(true_val, pred_val, text) and true_tag != pred_tag:
-            return True
-    return False
+            grount_truth.remove((true_tag, true_val))
+            return True, grount_truth
+    return False, grount_truth
 
 
 def checkIfOverlap(true_val, pred_val, text):
