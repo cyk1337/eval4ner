@@ -40,6 +40,17 @@ def single_ut2():
     pprint.pprint(one_result)
 
 
+def single_ut3():
+    """
+        test single
+    """
+    grount_truth = [("PER", "John"), ("PER", "Jones")]
+    prediction = [("PER", "John Jones")]
+    text = 'John Jones and Peter Peters came to York'
+    one_result = muc.evaluate_one(prediction, grount_truth, text)
+    pprint.pprint(one_result)
+
+
 def all_ut1():
     """
         test all
@@ -66,5 +77,5 @@ if __name__ == '__main__':
     import eval4ner.muc as muc
     import pprint
 
-
     single_ut2()
+    # single_ut3()

@@ -28,16 +28,16 @@ _____.___._______________  __.____ __________    _________   ___ ___    _____  .
 from copy import deepcopy
 import pprint
 
-def evaluate_one(prediction: list, grount_truth: list, text: str):
+def evaluate_one(prediction: list, ground_truth: list, text: str):
     """
     Evaluate single case
     Calculate detailed partial evaluation metric. See Evaluation of the SemEval-2013 Task 9.1
     :param prediction (list): [(slot tag, slot content), (slot tag, slot content), (slot tag, slot content), ...]
-    :param grount_true (list): [(slot tag, slot content), (slot tag, slot content), (slot tag, slot content), ...]
+    :param ground_truth (list): [(slot tag, slot content), (slot tag, slot content), (slot tag, slot content), ...]
     :return: eval_results (dict)
     """
     # if no label and no prediction, reguard as all correct!
-    if len(prediction) == 0 and len(grount_truth) == 0:
+    if len(prediction) == 0 and len(ground_truth) == 0:
         eval_metics = {"correct": 1,
                        "incorrect": 1,
                        "partial": 1,
@@ -68,11 +68,12 @@ def evaluate_one(prediction: list, grount_truth: list, text: str):
                     "exact": deepcopy(eval_metics),
                     "partial": deepcopy(eval_metics),
                     "type": deepcopy(eval_metics), }
-
+    prediction_tmp = deepcopy(prediction)
+    ground_truth_tmp = deepcopy(ground_truth)
     for pred_tag, pred_val in prediction:
         # exact match, i.e. both entity boundary and entity type match
         # scenario 1
-        flag1, grount_truth = check_Scenario1(pred_tag, pred_val, grount_truth)
+        flag1, ground_truth = check_Scenario1(pred_tag, pred_val, ground_truth)
         if flag1:
             # 'strict' matching
             eval_results['strict']['correct'] += 1
@@ -82,7 +83,7 @@ def evaluate_one(prediction: list, grount_truth: list, text: str):
             continue
         # partial match
         # scenario 5
-        flag5, grount_truth = check_Scenario5(pred_tag, pred_val, grount_truth, text)
+        flag5, ground_truth = check_Scenario5(pred_tag, pred_val, ground_truth, text)
         if flag5:
             # exact boundary matching
             eval_results['strict']['incorrect'] += 1
@@ -92,7 +93,7 @@ def evaluate_one(prediction: list, grount_truth: list, text: str):
             continue
 
         # scenario 4: same pred value，entity type disagree
-        flag4, grount_truth = check_Scenario4(pred_tag, pred_val, grount_truth)
+        flag4, ground_truth = check_Scenario4(pred_tag, pred_val, ground_truth)
         if flag4:
             eval_results['strict']['incorrect'] += 1
             eval_results['exact']['correct'] += 1
@@ -101,7 +102,7 @@ def evaluate_one(prediction: list, grount_truth: list, text: str):
             continue
 
         # scenario 6 : overlap exists, but tags disagree
-        flag6, grount_truth = check_Scenario6(pred_tag, pred_val, grount_truth, text)
+        flag6, ground_truth = check_Scenario6(pred_tag, pred_val, ground_truth, text)
         if flag6:
             eval_results['strict']['incorrect'] += 1
             eval_results['exact']['incorrect'] += 1
@@ -111,7 +112,7 @@ def evaluate_one(prediction: list, grount_truth: list, text: str):
 
         # predictee not exists in golden standard
         # scenario 2: SPU, predicted entity not exists in golden, and no overlap on entity boundary
-        flag2, grount_truth = check_Scenario2(pred_tag, pred_val, grount_truth, text)
+        flag2, ground_truth = check_Scenario2(pred_tag, pred_val, ground_truth, text)
         if flag2:
             eval_results['strict']['spurius'] += 1
             eval_results['exact']['spurius'] += 1
@@ -119,8 +120,8 @@ def evaluate_one(prediction: list, grount_truth: list, text: str):
             eval_results['type']['spurius'] += 1
             continue
 
-    for true_tag, true_val in grount_truth:
-        flag, prediction = check_Scenario3(true_tag, true_val, prediction, text)
+    for true_tag, true_val in ground_truth_tmp:
+        flag, prediction_tmp = check_Scenario3(true_tag, true_val, prediction_tmp, text)
         if flag:
             # count missing
             eval_results['strict']['missed'] += 1
