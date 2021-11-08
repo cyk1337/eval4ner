@@ -153,7 +153,7 @@ def check_Scenario1(pred_tag: str, pred_val: str, grount_truth: list):
     # scenario 1: both entity type and entity boundary strictly match
     COR_list = [1 for true_tag, true_val in grount_truth if true_tag == pred_tag and true_val == pred_val]
     if len(COR_list) > 0:
-        grount_truth.remove((pred_tag, pred_val))
+        #grount_truth.remove((pred_tag, pred_val))
         return True, grount_truth
     else:
         return False, grount_truth
@@ -163,7 +163,7 @@ def check_Scenario5(pred_tag: str, pred_val: str, grount_truth: list, text: str)
     # scenario 5: same entity type and entity boundary overlap
     for true_tag, true_val in grount_truth:
         if pred_tag == true_tag and checkIfOverlap(true_val, pred_val, text):
-            grount_truth.remove((true_tag, true_val))
+            #grount_truth.remove((true_tag, true_val))
             return True, grount_truth
     return False, grount_truth
 
@@ -181,7 +181,7 @@ def check_Scenario3(true_tag: str, true_val: str, prediction: list, text: str):
     # scenario 3:entity boundary not overlap,  golden standard not exists in prediction
     for pred_tag, pred_val in prediction:
         if checkIfOverlap(true_val, pred_val, text):
-            prediction.remove((pred_tag, pred_val))
+            #prediction.remove((pred_tag, pred_val))
             return False, prediction
     return True, prediction
 
@@ -190,7 +190,7 @@ def check_Scenario4(pred_tag: str, pred_val: str, grount_truth: list):
     # scenario 4: same pred value，entity type disagree
     for true_tag, true_val in grount_truth:
         if true_val == pred_val and true_tag != pred_tag:
-            grount_truth.remove((true_tag, true_val))
+            #grount_truth.remove((true_tag, true_val))
             return True, grount_truth
     return False, grount_truth
 
@@ -199,7 +199,7 @@ def check_Scenario6(pred_tag: str, pred_val: str, grount_truth: list, text: str)
     # scenario 6: entity boundary overlap, entity type disagree
     for true_tag, true_val in grount_truth:
         if checkIfOverlap(true_val, pred_val, text) and true_tag != pred_tag:
-            grount_truth.remove((true_tag, true_val))
+            #grount_truth.remove((true_tag, true_val))
             return True, grount_truth
     return False, grount_truth
 
