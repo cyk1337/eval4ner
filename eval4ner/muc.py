@@ -266,7 +266,12 @@ def evaluate_all(predictions: list, golden_labels: list, texts: list, verbose=Fa
                      "exact": deepcopy(eval_metics),
                      "partial": deepcopy(eval_metics),
                      "type": deepcopy(eval_metics), }
-    for i, (pred, gt, text) in enumerate(zip(predictions, golden_labels, texts)):
+    
+    predictions_copy = deepcopy(predictions)
+    golden_labels_copy = deepcopy(golden_labels)
+    texts_copy = deepcopy(texts)
+    
+    for i, (pred, gt, text) in enumerate(zip(golden_labels_copy, golden_labels_copy, texts_copy)):
         one_result = evaluate_one(pred, gt, text)
         if verbose:
             print('--'*6, 'sample_{:0>6}:'.format(i + 1))
