@@ -26,7 +26,6 @@ _____.___._______________  __.____ __________    _________   ___ ___    _____  .
 
 
 from copy import deepcopy
-from copy import copy
 import pprint
 
 def evaluate_one(prediction: list, ground_truth: list, text: str):
@@ -269,7 +268,6 @@ def evaluate_all(predictions: list, golden_labels: list, texts: list, verbose=Fa
                      "exact": deepcopy(eval_metics),
                      "partial": deepcopy(eval_metics),
                      "type": deepcopy(eval_metics), }
-
     predictions_copy = deepcopy(predictions)
     golden_labels_copy = deepcopy(golden_labels)
     for i, (pred, gt, text) in enumerate(zip(predictions_copy, golden_labels_copy, texts)):

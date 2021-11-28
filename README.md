@@ -1,13 +1,3 @@
-# Simple fix - Waiting for accepting pull request
-
-This fork contains just a quick fix that solves the in-place modification of ground-truth and prediction. 
-
-To install this version:
-
-```bash
-pip install git+https://github.com/MorenoLaQuatra/eval4ner.git
-```
-
 # NER-evaluation
 
 This is a Python implementation of NER MUC evaluation. Refer to the blog [Evaluation Metrics of Name Entity Recognition](https://ychai.uk/notes/2018/11/21/NLP/NER/Evaluation-metrics-of-Name-Entity-Recognition-systems/#SemEval%E2%80%9813) for explanations of MUC metric.
