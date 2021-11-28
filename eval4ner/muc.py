@@ -36,6 +36,8 @@ def evaluate_one(prediction: list, ground_truth: list, text: str):
     :param ground_truth (list): [(slot tag, slot content), (slot tag, slot content), (slot tag, slot content), ...]
     :return: eval_results (dict)
     """
+    prediction = deepcopy(prediction)
+    ground_truth = deepcopy(ground_truth)
     # if no label and no prediction, reguard as all correct!
     if len(prediction) == 0 and len(ground_truth) == 0:
         eval_metics = {"correct": 1,
@@ -266,12 +268,10 @@ def evaluate_all(predictions: list, golden_labels: list, texts: list, verbose=Fa
                      "exact": deepcopy(eval_metics),
                      "partial": deepcopy(eval_metics),
                      "type": deepcopy(eval_metics), }
-    
+
     predictions_copy = deepcopy(predictions)
     golden_labels_copy = deepcopy(golden_labels)
-    texts_copy = deepcopy(texts)
-    
-    for i, (pred, gt, text) in enumerate(zip(predictions_copy, golden_labels_copy, texts_copy)):
+    for i, (pred, gt, text) in enumerate(zip(predictions_copy, golden_labels_copy, texts)):
         one_result = evaluate_one(pred, gt, text)
         if verbose:
             print('--'*6, 'sample_{:0>6}:'.format(i + 1))
@@ -290,7 +290,8 @@ if __name__ == '__main__':
     grount_truth = [('PER', 'John Jones'), ('PER', 'Peter Peters'), ('LOC', 'York')]
     prediction = [('PER', 'John Jones and Peter Peters came to York')]
     text = 'John Jones and Peter Peters came to York'
-    # one_result = evaluate_one(prediction, grount_truth, text)
-    # print(one_result)
+    # print(evaluate_one(prediction, grount_truth, text))
+    # print(evaluate_one(prediction, grount_truth, text))
 
+    evaluate_all([prediction] * 1, [grount_truth] * 1, [text] * 1, verbose=True)
     evaluate_all([prediction] * 1, [grount_truth] * 1, [text] * 1, verbose=True)
