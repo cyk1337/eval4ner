@@ -9,7 +9,7 @@
 Table of Contents
 =================
 
-- [TL;DR](https://github.com/cyk1337/eval4ner/#tddr)
+- [TL;DR](https://github.com/cyk1337/eval4ner/#tldr)
 - [Preliminaries for NER Evaluation](https://github.com/cyk1337/eval4ner/#preliminaries-for-ner-evaluation)
 - [User Guide](https://github.com/cyk1337/eval4ner/#user-guide)
     - [Installation](https://github.com/cyk1337/eval4ner/#installation)
@@ -20,7 +20,7 @@ Table of Contents
 This is a Python toolkit of MUC-5 evaluation metrics for evaluating Named Entity Recognition (NER) results. 
 
 
-## TD;DR
+## TL;DR
 It considers not only the mode of strict matching, *i.e.*, extracted entities are correct w.r.t both boundaries and types, but that of partial match, summarizing as following four modes:  
 - Strict：Exact match (Both entity boundary and type are correct)
 - Exact boundary matching：predicted entity boundary is correct, regardless of entity boundary
