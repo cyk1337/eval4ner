@@ -1,14 +1,226 @@
-# NER-evaluation
+# eval4ner: An All-Round Evaluation for Named Entity Recognition
+![Stable version](https://img.shields.io/pypi/v/eval4ner)
+![Python3](https://img.shields.io/pypi/pyversions/eval4ner)![wheel:eval4ner](https://img.shields.io/pypi/wheel/eval4ner)
+![Download](https://img.shields.io/pypi/dm/eval4ner)
+![MIT License](https://img.shields.io/pypi/l/eval4ner)
 
-This is a Python implementation of NER MUC evaluation. Refer to the blog [Evaluation Metrics of Name Entity Recognition](https://ychai.uk/notes/2018/11/21/NLP/NER/Evaluation-metrics-of-Name-Entity-Recognition-systems/#SemEval%E2%80%9813) for explanations of MUC metric.
 
-## Installation
+
+Table of Contents
+=================
+
+- [TD;DR](https://github.com/cyk1337/eval4ner/#TD;DR)
+- [Preliminaries for NER Evaluatio](https://github.com/cyk1337/eval4ner/#Preliminaries%20for%20NER%20Evaluation)
+- [User Guide](https://github.com/cyk1337/eval4ner/#User%20Guide)
+    - [Installation](https://github.com/cyk1337/eval4ner/#Installation)
+    - [Usage](https://github.com/cyk1337/eval4ner/#Usage)
+- [Citation](https://github.com/cyk1337/eval4ner/#Citation)
+- [References](https://github.com/cyk1337/eval4ner/#References)
+
+This is a Python toolkit of MUC-5 evaluation metrics for evaluating Named Entity Recognition (NER) results. 
+
+
+## TD;DR
+It considers not only the mode of strict matching, *i.e.*, extracted entities are correct w.r.t both boundaries and types, but that of partial match, summarizing as following four modes:  
+- Strict：Exact match (Both entity boundary and type are correct)
+- Exact boundary matching：predicted entity boundary is correct, regardless of entity boundary
+- Partial boundary matching：entity boundaries overlap, regardless of entity boundary
+- Type matching：some overlap between the system tagged entity and the gold annotation is required;
+
+
+Refer to the blog [Evaluation Metrics of Name Entity Recognition](https://ychai.uk/notes/2018/11/21/NLP/NER/NER-Evaluation-Metrics/#SemEval%E2%80%9813) for explanations of MUC metric.
+
+## Preliminaries for NER Evaluation
+In research and production, following scenarios of NER systems can occur frequently: 
+
+<table class="tg">
+  <tr>
+    <th class="tg-0pky">Scenario</th>
+    <th class="tg-c3ow" colspan="2">Golden Standard</th>
+    <th class="tg-c3ow" colspan="2">NER system prediction</th>
+    <th class="tg-c3ow" colspan="4">Measure</th>
+  </tr>
+  <tr>
+    <td class="tg-0pky"></td>
+    <td class="tg-c3ow">Entity Type</td>
+    <td class="tg-c3ow">Entity Boundary (Surface String)</td>
+    <td class="tg-0pky">Entity Type</td>
+    <td class="tg-0pky">Entity Boundary (Surface String)</td>
+    <td class="tg-0pky">Type</td>
+    <td class="tg-0pky">Partial</td>
+    <td class="tg-0pky">Exact</td>
+    <td class="tg-0pky">Strict</td>
+  </tr>
+  <tr>
+    <td class="tg-0pky">III</td>
+    <td class="tg-c3ow">MUSIC_NAME</td>
+    <td class="tg-c3ow">告白气球</td>
+    <td class="tg-0pky"></td>
+    <td class="tg-0pky"></td>
+    <td class="tg-0pky">MIS</td>
+    <td class="tg-0pky">MIS</td>
+    <td class="tg-0pky">MIS</td>
+    <td class="tg-0pky">MIS</td>
+  </tr>
+  <tr>
+    <td class="tg-0pky">II</td>
+    <td class="tg-c3ow"></td>
+    <td class="tg-c3ow"></td>
+    <td class="tg-0pky">MUSIC_NAME</td>
+    <td class="tg-0pky">年轮</td>
+    <td class="tg-0pky">SPU</td>
+    <td class="tg-0pky">SPU</td>
+    <td class="tg-0pky">SPU</td>
+    <td class="tg-0pky">SPU</td>
+  </tr>
+  <tr>
+    <td class="tg-0pky">V</td>
+    <td class="tg-c3ow">MUSIC_NAME</td>
+    <td class="tg-c3ow">告白气球</td>
+    <td class="tg-0pky">MUSIC_NAME</td>
+    <td class="tg-0pky">一首告白气球</td>
+    <td class="tg-0pky">COR</td>
+    <td class="tg-0pky">PAR</td>
+    <td class="tg-0pky">INC</td>
+    <td class="tg-0pky">INC</td>
+  </tr>
+  <tr>
+    <td class="tg-0pky">IV</td>
+    <td class="tg-c3ow">MUSIC_NAME</td>
+    <td class="tg-c3ow">告白气球</td>
+    <td class="tg-0pky">SINGER</td>
+    <td class="tg-0pky">告白气球</td>
+    <td class="tg-0pky">INC</td>
+    <td class="tg-0pky">COR</td>
+    <td class="tg-0pky">COR</td>
+    <td class="tg-0pky">INC</td>
+  </tr>
+  <tr>
+    <td class="tg-0pky">I</td>
+    <td class="tg-c3ow">MUSIC_NAME</td>
+    <td class="tg-c3ow">告白气球</td>
+    <td class="tg-0pky">MUSIC_NAME</td>
+    <td class="tg-0pky">告白气球</td>
+    <td class="tg-0pky">COR</td>
+    <td class="tg-0pky">COR</td>
+    <td class="tg-0pky">COR</td>
+    <td class="tg-0pky">COR</td>
+  </tr>
+  <tr>
+    <td class="tg-0pky">VI</td>
+    <td class="tg-c3ow">MUSIC_NAME</td>
+    <td class="tg-c3ow">告白气球</td>
+    <td class="tg-0pky">SINGER</td>
+    <td class="tg-0pky">一首告白气球</td>
+    <td class="tg-0pky">INC</td>
+    <td class="tg-0pky">PAR</td>
+    <td class="tg-0pky">INC</td>
+    <td class="tg-0pky">INC</td>
+  </tr>
+</table>
+
+Thus, MUC-5 takes into account all these scenarios for all-sided evaluation. 
+
+Then we can compute:
+
+**Number of golden standard**:
+
+<img src="https://render.githubusercontent.com/render/math?math=Possible(POS) = COR %2B INC %2B PAR %2B MIS = TP %2B FN">
+
+**Number of predictee**: 
+
+<img src="https://render.githubusercontent.com/render/math?math=Actual(ACT) = COR %2B INC %2B PAR %2B SPU = TP %2B FP">
+
+The evaluation type of exact match and partial match are as follows:
+### Exact match(i.e. Strict, Exact)
+<img src="https://render.githubusercontent.com/render/math?math=Precision = \frac{COR}{ACT} = \frac{TP}{TP%2BFP}">
+<img src="https://render.githubusercontent.com/render/math?math=Recall =\frac{COR}{POS}=\frac{TP}{TP%2BFN}">
+
+
+### Partial match (i.e. Partial, Type)
+<img src="https://render.githubusercontent.com/render/math?math=Precision = \frac{COR %2B 0.5\times PAR}{ACT}">
+<img src="https://render.githubusercontent.com/render/math?math=Recall = \frac{COR %2B 0.5 \times PAR}{POS}">
+
+
+### F-Measure
+<img src="https://render.githubusercontent.com/render/math?math=F_\alpha = \frac{(\alpha^2 %2B 1)PR}{\alpha^2 P%2BR}">
+<img src="https://render.githubusercontent.com/render/math?math=F_1 = \frac{2PR}{P%2BR}">
+
+Therefore, we can get the results:
+<table class="tg">
+  <tr>
+    <th class="tg-e6bt">Measure</th>
+    <th class="tg-23iq">Type</th>
+    <th class="tg-23iq">Partial</th>
+    <th class="tg-ww3v">Exact</th>
+    <th class="tg-ww3v">Strict</th>
+  </tr>
+  <tr>
+    <td class="tg-e6bt">Correct</td>
+    <td class="tg-23iq">2</td>
+    <td class="tg-23iq">2</td>
+    <td class="tg-ww3v">2</td>
+    <td class="tg-ww3v">1</td>
+  </tr>
+  <tr>
+    <td class="tg-e6bt">Incorrect</td>
+    <td class="tg-23iq">2</td>
+    <td class="tg-23iq">0</td>
+    <td class="tg-ww3v">2</td>
+    <td class="tg-ww3v">3</td>
+  </tr>
+  <tr>
+    <td class="tg-e6bt">Partial</td>
+    <td class="tg-23iq">0</td>
+    <td class="tg-23iq">2</td>
+    <td class="tg-ww3v">0</td>
+    <td class="tg-ww3v">0</td>
+  </tr>
+  <tr>
+    <td class="tg-e6bt">Missed</td>
+    <td class="tg-23iq">1</td>
+    <td class="tg-23iq">1</td>
+    <td class="tg-ww3v">1</td>
+    <td class="tg-ww3v">1</td>
+  </tr>
+  <tr>
+    <td class="tg-e6bt">Spurius</td>
+    <td class="tg-23iq">1</td>
+    <td class="tg-23iq">1</td>
+    <td class="tg-ww3v">1</td>
+    <td class="tg-ww3v">1</td>
+  </tr>
+  <tr>
+    <td class="tg-e6bt">Precision</td>
+    <td class="tg-23iq">0.4</td>
+    <td class="tg-23iq">0.6</td>
+    <td class="tg-ww3v">0.4</td>
+    <td class="tg-ww3v">0.2</td>
+  </tr>
+  <tr>
+    <td class="tg-e6bt">Recall</td>
+    <td class="tg-23iq">0.4</td>
+    <td class="tg-23iq">0.6</td>
+    <td class="tg-ww3v">0.4</td>
+    <td class="tg-ww3v">0.2</td>
+  </tr>
+  <tr>
+    <td class="tg-gx32">F1 score</td>
+    <td class="tg-t0np">0.4</td>
+    <td class="tg-t0np">0.6</td>
+    <td class="tg-8l38">0.4</td>
+    <td class="tg-8l38">0.2</td>
+  </tr>
+</table>
+
+## User Guide
+### Installation
 ```bash
-pip install eval4ner
+pip install [-U] eval4ner
 ```
 
-## Usage
-1. Evaluate single prediction
+### Usage
+#### 1. Evaluate single prediction
 ```python
 import eval4ner.muc as muc
 import pprint
@@ -19,7 +231,7 @@ one_result = muc.evaluate_one(prediction, grount_truth, text)
 pprint.pprint(one_result)
 ```
 
-Output
+Output:
 ```bash
 {'exact': {'actual': 1,
            'correct': 0,
@@ -64,7 +276,7 @@ Output
 
 ```
 
-2. Evaluate all predictions
+#### 2. Evaluate all predictions
 ```python
 import eval4ner.muc as muc
 # ground truth
@@ -97,13 +309,16 @@ Output:
     type mode, Precision=0.8889, Recall=0.6667, F1:0.7222
 ```
 
-## Cite
+This repo will be long-term supported. Welcome to contribute and PR.
+
+## Citation
+For attribution in academic contexts, please cite this work as:
 ```
 @misc{eval4ner,
-  title={eval4ner},
+  title={Named Entity Evaluation Toolkit:eval4ner},
   author={Yekun Chai},
   year={2018},
-  howpublished={\url{https://cyk1337.github.io/notes/2018/11/21/NLP/NER/Evaluation-metrics-of-Name-Entity-Recognition-systems/}},
+  howpublished={\url{https://cyk1337.github.io/notes/2018/11/21/NLP/NER/NER-Evaluation-Metrics/}},
 }
 ```
 
