@@ -9,13 +9,13 @@
 Table of Contents
 =================
 
-- [TD;DR](https://github.com/cyk1337/eval4ner/#TD;DR)
-- [Preliminaries for NER Evaluatio](https://github.com/cyk1337/eval4ner/#Preliminaries%20for%20NER%20Evaluation)
-- [User Guide](https://github.com/cyk1337/eval4ner/#User%20Guide)
-    - [Installation](https://github.com/cyk1337/eval4ner/#Installation)
-    - [Usage](https://github.com/cyk1337/eval4ner/#Usage)
-- [Citation](https://github.com/cyk1337/eval4ner/#Citation)
-- [References](https://github.com/cyk1337/eval4ner/#References)
+- [TL;DR](https://github.com/cyk1337/eval4ner/#tddr)
+- [Preliminaries for NER Evaluation](https://github.com/cyk1337/eval4ner/#preliminaries-for-ner-evaluation)
+- [User Guide](https://github.com/cyk1337/eval4ner/#user-guide)
+    - [Installation](https://github.com/cyk1337/eval4ner/#installation)
+    - [Usage](https://github.com/cyk1337/eval4ner/#usage)
+- [Citation](https://github.com/cyk1337/eval4ner/#citation)
+- [References](https://github.com/cyk1337/eval4ner/#references)
 
 This is a Python toolkit of MUC-5 evaluation metrics for evaluating Named Entity Recognition (NER) results. 
 
