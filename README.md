@@ -315,10 +315,19 @@ This repo will be long-term supported. Welcome to contribute and PR.
 For attribution in academic contexts, please cite this work as:
 ```
 @misc{eval4ner,
-  title={Named Entity Evaluation Toolkit:eval4ner},
+  title={Evaluation Metrics of Named Entity Recognition},
   author={Yekun Chai},
   year={2018},
   howpublished={\url{https://cyk1337.github.io/notes/2018/11/21/NLP/NER/NER-Evaluation-Metrics/}},
+}
+
+@misc{chai2018-ner-eval,
+  author = {Chai, Yekun},
+  title = {eval4ner: An All-Round Evaluation for Named Entity Recognition},
+  year = {2019},
+  publisher = {GitHub},
+  journal = {GitHub repository},
+  howpublished = {\url{https://github.com/cyk1337/eval4ner}}
 }
 ```
 
