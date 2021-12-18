@@ -22,7 +22,7 @@ This is a Python toolkit of MUC-5 evaluation metrics for evaluating Named Entity
 
 ## TL;DR
 It considers not only the mode of strict matching, *i.e.*, extracted entities are correct w.r.t both boundaries and types, but that of partial match, summarizing as following four modes:  
-- Strict：Exact match (Both entity boundary and type are correct)
+- Strict：exact match (Both entity boundary and type are correct)
 - Exact boundary matching：predicted entity boundary is correct, regardless of entity boundary
 - Partial boundary matching：entity boundaries overlap, regardless of entity boundary
 - Type matching：some overlap between the system tagged entity and the gold annotation is required;
