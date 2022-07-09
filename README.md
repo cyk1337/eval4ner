@@ -316,7 +316,7 @@ For attribution in academic contexts, please cite this work as:
 ```
 @misc{eval4ner,
   title={Evaluation Metrics of Named Entity Recognition},
-  author={Yekun Chai},
+  author={Chai, Yekun},
   year={2018},
   howpublished={\url{https://cyk1337.github.io/notes/2018/11/21/NLP/NER/NER-Evaluation-Metrics/}},
 }
