@@ -279,18 +279,40 @@ def evaluate_all(predictions: list, golden_labels: list, texts: list, verbose=Fa
 
     print('\n', 'NER evaluation scores:')
     for mode, res in total_results.items():
+        res['precision'] /= res['count']
+        res['recall'] /= res['count']
+        res['f1_score'] /= res['count']
         print("{:>8s} mode, Precision={:<6.4f}, Recall={:<6.4f}, F1:{:<6.4f}"
-              .format(mode, res['precision'] / res['count'], res['recall'] / res['count'],
-                      res['f1_score'] / res['count']))
+              .format(mode, res['precision'], res['recall'], res['f1_score']))
     return total_results
 
 
 if __name__ == '__main__':
-    grount_truth = [('PER', 'John Jones'), ('PER', 'Peter Peters'), ('LOC', 'York')]
-    prediction = [('PER', 'John Jones and Peter Peters came to York')]
-    text = 'John Jones and Peter Peters came to York'
-    # print(evaluate_one(prediction, grount_truth, text))
-    # print(evaluate_one(prediction, grount_truth, text))
+    # grount_truth = [('PER', 'John Jones'), ('PER', 'Peter Peters'), ('LOC', 'York')]
+    # prediction = [('PER', 'John Jones and Peter Peters came to York')]
+    # text = 'John Jones and Peter Peters came to York'
+    # # print(evaluate_one(prediction, grount_truth, text))
+    # # print(evaluate_one(prediction, grount_truth, text))
 
-    evaluate_all([prediction] * 1, [grount_truth] * 1, [text] * 1, verbose=True)
-    evaluate_all([prediction] * 1, [grount_truth] * 1, [text] * 1, verbose=True)
+    # evaluate_all([prediction] * 1, [grount_truth] * 1, [text] * 1, verbose=True)
+    # evaluate_all([prediction] * 1, [grount_truth] * 1, [text] * 1, verbose=True)
+
+    grount_truths = [
+    [('PER', 'John Jones'), ('PER', 'Peter Peters'), ('LOC', 'York')],
+    [('PER', 'John Jones'), ('PER', 'Peter Peters'), ('LOC', 'York')],
+    [('PER', 'John Jones'), ('PER', 'Peter Peters'), ('LOC', 'York')]
+    ]
+    # NER model prediction
+    predictions = [
+        [('PER', 'John Jones and Peter Peters came to York')],
+        [('LOC', 'John Jones'), ('PER', 'Peters'), ('LOC', 'York')],
+        [('PER', 'John Jones'), ('PER', 'Peter Peters'), ('LOC', 'York')]
+    ]
+    # input texts
+    texts = [
+        'John Jones and Peter Peters came to York',
+        'John Jones and Peter Peters came to York',
+        'John Jones and Peter Peters came to York'
+    ]
+    res = evaluate_all(predictions, grount_truths * 1, texts, verbose=True)
+    print(res)

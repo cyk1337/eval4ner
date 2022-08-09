@@ -27,7 +27,7 @@ with open("README.md", "r") as fh:
 
 setuptools.setup(
     name="eval4ner",
-    version="0.0.5",
+    version="0.1.0",
     author="cyk1337",
     author_email="chaiyekun@gmail.com",
     description="A package for NER evaluation",
