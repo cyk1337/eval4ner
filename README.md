@@ -125,26 +125,29 @@ Then we can compute:
 
 **Number of golden standard**:
 
-<img src="https://render.githubusercontent.com/render/math?math=Possible(POS) = COR %2B INC %2B PAR %2B MIS = TP %2B FN">
+Possible(POS) = COR + INC + PAR + MIS = TP + FN
 
 **Number of predictee**: 
 
-<img src="https://render.githubusercontent.com/render/math?math=Actual(ACT) = COR %2B INC %2B PAR %2B SPU = TP %2B FP">
+Actual(ACT) = COR + INC + PAR + SPU = TP + FP
 
 The evaluation type of exact match and partial match are as follows:
 ### Exact match(i.e. Strict, Exact)
-<img src="https://render.githubusercontent.com/render/math?math=Precision = \frac{COR}{ACT} = \frac{TP}{TP%2BFP}">
-<img src="https://render.githubusercontent.com/render/math?math=Recall =\frac{COR}{POS}=\frac{TP}{TP%2BFN}">
 
+$\text{Precision = COR / ACT = TP / (TP + FP)}$
+
+$\text{Recall = COR / POS = TP / (TP + FN)}$
 
 ### Partial match (i.e. Partial, Type)
-<img src="https://render.githubusercontent.com/render/math?math=Precision = \frac{COR %2B 0.5\times PAR}{ACT}">
-<img src="https://render.githubusercontent.com/render/math?math=Recall = \frac{COR %2B 0.5 \times PAR}{POS}">
+$\text{Precision = (COR + 0.5 * PAR) /ACT}$
+$\text{Recall = (COR + 0.5 * PAR)/ POS }$
 
 
 ### F-Measure
-<img src="https://render.githubusercontent.com/render/math?math=F_\alpha = \frac{(\alpha^2 %2B 1)PR}{\alpha^2 P%2BR}">
-<img src="https://render.githubusercontent.com/render/math?math=F_1 = \frac{2PR}{P%2BR}">
+
+$F_\alpha = ((\alpha^2 + 1)* PR) / (\alpha^2 P + R)$
+
+$F_1 = (2PR)/ (P +R)$
 
 Therefore, we can get the results:
 <table class="tg">
